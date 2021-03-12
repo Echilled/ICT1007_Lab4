@@ -26,13 +26,20 @@ int main(int argc, char * argv[])
     srand(time(NULL));
     int sleepNo, pNo, cNo;
 
-    printf("Number of arguments = %d", argc-1);
-    sleepNo = atoi(argv[1]);
-    printf("\nMain process sleep time = %d", sleepNo);
-    pNo = atoi(argv[2]);
-    printf("\nNumber of producers = %d", pNo);
-    cNo = atoi(argv[3]);
-    printf("\nNumber of consumers = %d", cNo);
+    switch (argc) {
+        case 4:
+            printf("Number of arguments = %d", argc-1);
+            sleepNo = atoi(argv[1]);
+            printf("\nMain process sleep time = %d", sleepNo);
+            pNo = atoi(argv[2]);
+            printf("\nNumber of producers = %d", pNo);
+            cNo = atoi(argv[3]);
+            printf("\nNumber of consumers = %d", cNo);
+            break;
+        default:
+            printf("Incorrect number of arguments!");
+            exit(0);
+    }
 
     /* Initialize the semaphores
      * empty = 5
@@ -48,17 +55,23 @@ int main(int argc, char * argv[])
     for (int i = 0; i < pNo; ++i) {
         /* Create an identifier for the thread and store it into the array */
         proCount[i] = i+1;
-        /* Create the thread and pass the identifier as a parameter to the producer function */
-        pthread_create(&pro[i], NULL, &producer, &proCount[i]);
         printf("\nProducer-%d thread created successfully", i+1);
     }
 
     for (int i = 0; i < cNo; ++i) {
         /* Create an identifier for the thread and store it into the array */
         conCount[i] = i+1;
+        printf("\nConsumer-%d thread created successfully", i+1);
+    }
+
+    for (int i = 0; i < pNo; ++i) {
+        /* Create the thread and pass the identifier as a parameter to the producer function */
+        pthread_create(&pro[i], NULL, &producer, &proCount[i]);
+    }
+
+    for (int i = 0; i < cNo; ++i) {
         /* Create the thread and pass the identifier as a parameter to the consumer function */
         pthread_create(&con[i], NULL, &consumer, &conCount[i]);
-        printf("\nConsumer-%d thread created successfully", i+1);
     }
 
     /* Main thread will sleep based on number specified in the argument */
@@ -116,7 +129,7 @@ void *consumer(void *arg) {
          * This is to tell the thread which element in the buffer is the most recent "full" value */
         int full_value;
         sem_getvalue(&full, &full_value);
-        printf("\nCurrent value in semaphore %d", full_value);
+//        printf("\nCurrent value in semaphore %d", full_value);
 
         nextNom = buffer[full_value];
         buffer[full_value] = 0;
@@ -162,7 +175,7 @@ void *producer(void *arg) {
          * This is to tell the thread which element in the buffer is the most recent "full" value */
         int full_value;
         sem_getvalue(&full, &full_value);
-        printf("\nCurrent value in semaphore %d", full_value);
+//        printf("\nCurrent value in semaphore %d", full_value);
 
         buffer[full_value] = nextItem;
 
